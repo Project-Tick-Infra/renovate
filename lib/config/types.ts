@@ -810,4 +810,5 @@ export interface BumpVersionConfig {
 export interface ToolSettingsOptions {
   jvmMaxMemory?: number;
   jvmMemory?: number;
+  nodeMaxMemory?: number;
 }
