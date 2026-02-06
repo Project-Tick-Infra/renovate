@@ -76,7 +76,7 @@ function checkResult(res: SpawnSyncReturns<string>): void {
     logger.error(`Error occured:\n${res.stderr || res.stdout}`);
     process.exit(res.status);
   } else if (res.error !== undefined) {
-    logger.error(`Error occured: ${res.error}`);
+    logger.error({ err: res.error }, `Error occured: ${res.error}`);
     process.exit(-1);
   } else if (res.status === null) {
     logger.warn(
