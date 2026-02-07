@@ -4,6 +4,7 @@ import { s3 } from '~test/s3.ts';
 import { fs, logger } from '~test/util.ts';
 import type { RenovateConfig } from '../config/types.ts';
 import type { PackageFile } from '../modules/manager/types.ts';
+import * as _exec from '../util/exec/index.ts';
 import type { BranchCache } from '../util/cache/repository/types.ts';
 import {
   addBranchStats,
@@ -18,11 +19,15 @@ import type { Report } from './types.ts';
 
 vi.mock('../util/fs/index.ts', () => mockDeep());
 vi.mock('../util/s3.ts', () => mockDeep());
+vi.mock('../util/exec/index.ts', () => mockDeep());
 vi.mock('../logger/index.ts', () => mockDeep());
+
+const exec = vi.mocked(_exec);
 
 describe('instrumentation/reporting', () => {
   beforeEach(() => {
     resetReport();
+    exec.exec.mockReset();
   });
 
   const branchInformation: Partial<BranchCache>[] = [
@@ -133,6 +138,80 @@ describe('instrumentation/reporting', () => {
     expect(fs.writeSystemFile).toHaveBeenCalledExactlyOnceWith(
       config.reportPath,
       JSON.stringify(expectedReport),
+    );
+  });
+
+  it('write RFC822 report if reportType is set to mailing-list', async () => {
+    const config: RenovateConfig = {
+      repository: 'myOrg/myRepo',
+      reportType: 'mailing-list',
+      reportPath: './report.eml',
+      mailingListFrom: 'renovate@example.com',
+      mailingListTo: ['deps@example.com'],
+      mailingListCc: ['maintainers@example.com'],
+      mailingListSubject: 'Weekly Renovate Summary',
+    };
+
+    addBranchStats(config, branchInformation);
+    addExtractionStats(config, { branchList: [], branches: [], packageFiles });
+
+    await exportStats(config);
+    expect(fs.writeSystemFile).toHaveBeenCalledTimes(1);
+    expect(fs.writeSystemFile.mock.calls[0][0]).toBe(config.reportPath);
+    const emlBody = fs.writeSystemFile.mock.calls[0][1] as string;
+    expect(emlBody).toContain('From: renovate@example.com');
+    expect(emlBody).toContain('To: deps@example.com');
+    expect(emlBody).toContain('Cc: maintainers@example.com');
+    expect(emlBody).toContain('Subject: Weekly Renovate Summary');
+    expect(emlBody).toContain('Repository: myOrg/myRepo');
+    expect(emlBody).toContain('Branch: a-branch-name');
+    expect(emlBody).toContain('21.1.1 -> 22.0.0');
+  });
+
+  it('pushes mailing-list report to a separate git branch', async () => {
+    const config: RenovateConfig = {
+      repository: 'myOrg/myRepo',
+      reportType: 'mailing-list',
+      mailingListGitRepo: 'https://example.com/org/reports.git',
+      mailingListGitBranch: 'renovate/mailing-list',
+      mailingListGitFile: 'mail/summary.eml',
+      mailingListGitCommitMessage: 'chore: update summary',
+      gitAuthor: 'Renovate Bot <renovate@example.com>',
+    };
+
+    exec.exec
+      .mockResolvedValueOnce({ stdout: '', stderr: '' }) // clone
+      .mockResolvedValueOnce({ stdout: '', stderr: '' }) // checkout
+      .mockResolvedValueOnce({ stdout: '', stderr: '' }) // add
+      .mockResolvedValueOnce({ stdout: 'M  mail/summary.eml\n', stderr: '' }) // status
+      .mockResolvedValueOnce({ stdout: '', stderr: '' }) // git config name
+      .mockResolvedValueOnce({ stdout: '', stderr: '' }) // git config email
+      .mockResolvedValueOnce({ stdout: '', stderr: '' }) // commit
+      .mockResolvedValueOnce({ stdout: '', stderr: '' }); // push
+
+    addBranchStats(config, branchInformation);
+    addExtractionStats(config, { branchList: [], branches: [], packageFiles });
+
+    await exportStats(config);
+
+    expect(exec.exec).toHaveBeenCalledTimes(8);
+    expect(exec.exec).toHaveBeenCalledWith(
+      [{ command: ['git', 'checkout', '-B', 'renovate/mailing-list'] }],
+      expect.any(Object),
+    );
+    expect(exec.exec).toHaveBeenCalledWith(
+      [
+        {
+          command: [
+            'git',
+            'push',
+            '--force-with-lease',
+            'origin',
+            'HEAD:renovate/mailing-list',
+          ],
+        },
+      ],
+      expect.any(Object),
     );
   });
 

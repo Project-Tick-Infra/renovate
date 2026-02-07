@@ -359,8 +359,16 @@ export interface RenovateConfig
     RenovateInternalConfig {
   s3Endpoint?: string;
   s3PathStyle?: boolean;
+  mailingListCc?: string[];
+  mailingListFrom?: string;
+  mailingListGitBranch?: string;
+  mailingListGitCommitMessage?: string;
+  mailingListGitFile?: string;
+  mailingListGitRepo?: string;
+  mailingListSubject?: string;
+  mailingListTo?: string[];
   reportPath?: string;
-  reportType?: 'logging' | 'file' | 's3' | null;
+  reportType?: 'logging' | 'file' | 's3' | 'mailing-list' | null;
   depName?: string;
   /** user configurable base branch patterns*/
   baseBranchPatterns?: string[];

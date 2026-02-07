@@ -470,15 +470,89 @@ const options: Readonly<RenovateOptions>[] = [
     type: 'string',
     default: null,
     experimental: true,
-    allowedValues: ['logging', 'file', 's3'],
+    allowedValues: ['logging', 'file', 's3', 'mailing-list'],
   },
   {
     name: 'reportPath',
     description:
-      'Path to where the file should be written. In case of `s3` this has to be a full S3 URI.',
+      'Path to where the report should be written. In case of `s3` this has to be a full S3 URI.',
     globalOnly: true,
     type: 'string',
     default: null,
+    experimental: true,
+  },
+  {
+    name: 'mailingListCc',
+    description:
+      'List of CC recipient addresses used when `reportType=mailing-list` and generating RFC822 mail output.',
+    globalOnly: true,
+    type: 'array',
+    subType: 'string',
+    default: [],
+    experimental: true,
+  },
+  {
+    name: 'mailingListFrom',
+    description:
+      'From header used when `reportType=mailing-list` and generating RFC822 mail output.',
+    globalOnly: true,
+    type: 'string',
+    default: 'renovate@localhost',
+    experimental: true,
+  },
+  {
+    name: 'mailingListTo',
+    description:
+      'List of recipient addresses used when `reportType=mailing-list` and generating RFC822 mail output.',
+    globalOnly: true,
+    type: 'array',
+    subType: 'string',
+    default: [],
+    experimental: true,
+  },
+  {
+    name: 'mailingListGitBranch',
+    description:
+      'Target branch for pushing `reportType=mailing-list` output to a Git repository.',
+    globalOnly: true,
+    type: 'string',
+    default: 'renovate/mailing-list-report',
+    experimental: true,
+  },
+  {
+    name: 'mailingListGitCommitMessage',
+    description:
+      'Commit message used when pushing `reportType=mailing-list` output to a Git repository.',
+    globalOnly: true,
+    type: 'string',
+    default: 'chore(mailing-list): update renovate summary',
+    experimental: true,
+  },
+  {
+    name: 'mailingListGitFile',
+    description:
+      'Repository-relative file path for the generated `reportType=mailing-list` output when pushing to Git.',
+    globalOnly: true,
+    type: 'string',
+    default: 'reports/renovate-summary.eml',
+    experimental: true,
+  },
+  {
+    name: 'mailingListGitRepo',
+    description:
+      'Git repository URL where `reportType=mailing-list` output should be pushed.',
+    globalOnly: true,
+    type: 'string',
+    default: null,
+    experimental: true,
+  },
+  {
+    name: 'mailingListSubject',
+    description:
+      'Subject used when `reportType=mailing-list` and generating RFC822 mail output.',
+    globalOnly: true,
+    type: 'string',
+    default: 'Renovate dependency update summary',
     experimental: true,
   },
   {

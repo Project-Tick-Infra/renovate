@@ -986,6 +986,38 @@ When you set `inheritConfigStrict=true` then Renovate will abort the run and rai
 `logContext` is included with each log entry only if `logFormat="json"` - it is not included in the pretty log output.
 If left as default (null), a random short ID will be selected.
 
+## mailingListCc
+
+Use this to set `Cc:` recipients (for example maintainers) for `reportType=mailing-list` exports.
+
+## mailingListFrom
+
+Use this to set the `From:` header for `reportType=mailing-list` exports.
+
+## mailingListGitBranch
+
+Use this to set the target branch name when `reportType=mailing-list` output is pushed to a Git repository.
+
+## mailingListGitCommitMessage
+
+Use this to customize the commit message when `reportType=mailing-list` output is pushed to a Git repository.
+
+## mailingListGitFile
+
+Use this to set the repository-relative target file path when `reportType=mailing-list` output is pushed to a Git repository.
+
+## mailingListGitRepo
+
+Use this to set the target Git repository URL for `reportType=mailing-list` output.
+
+## mailingListSubject
+
+Use this to set the `Subject:` header for `reportType=mailing-list` exports.
+
+## mailingListTo
+
+Use this to set the list of recipients for `reportType=mailing-list` exports.
+
 ## mergeConfidenceDatasources
 
 This feature is applicable only if you have an access token for Mend's Merge Confidence API.
@@ -1339,6 +1371,10 @@ Example URL structure: `redis+cluster://[[username]:[password]]@redis.cluster.lo
 If [`reportType`](#reporttype) is set to `file`, then set `reportPath` to a filepath.
 For example: `/foo/bar.json`.
 
+If [`reportType`](#reporttype) is set to `mailing-list`, then set `reportPath` to a filepath for the generated `.eml` file.
+For example: `/foo/renovate-summary.eml`.
+If [`mailingListGitRepo`](#mailinglistgitrepo) is set, Renovate can also commit and push this report to a separate branch in that repository.
+
 If the value `s3` is used in [`reportType`](#reporttype), then use a S3 URI.
 For example: `s3://bucket-name/key-name`.
 
@@ -1349,6 +1385,7 @@ Defines how the report is exposed:
 - `<unset>` If unset, no report will be provided, though the debug logs will still have partial information of the report
 - `logging` The report will be printed as part of the log messages on `INFO` level
 - `file` The report will be written to a path provided by [`reportPath`](#reportpath)
+- `mailing-list` The report will be rendered as an RFC822 mail message and written to [`reportPath`](#reportpath), and can optionally be pushed to [`mailingListGitRepo`](#mailinglistgitrepo)
 - `s3` The report is pushed to an S3 bucket defined by [`reportPath`](#reportpath). This option reuses [`s3Endpoint`](#s3endpoint) and [`s3PathStyle`](#s3pathstyle)
 
 ## repositories
