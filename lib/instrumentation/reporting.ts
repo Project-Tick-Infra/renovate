@@ -2,6 +2,7 @@ import { tmpdir } from 'node:os';
 import type { PutObjectCommandInput } from '@aws-sdk/client-s3';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { isNullOrUndefined, isUndefined } from '@sindresorhus/is';
+import cleanGitRef from 'clean-git-ref';
 import fs from 'fs-extra';
 import upath from 'upath';
 import type { RenovateConfig } from '../config/types.ts';
@@ -255,7 +256,7 @@ async function pushMailingListReportToGit(
     return;
   }
 
-  const branch = config.mailingListGitBranch ?? 'renovate/mailing-list-report';
+  const branch = getMailingListGitBranch(config);
   const fileName = config.mailingListGitFile ?? 'reports/renovate-summary.eml';
   const commitMessage =
     config.mailingListGitCommitMessage ??
@@ -323,6 +324,61 @@ async function pushMailingListReportToGit(
   } finally {
     await fs.remove(tempDir);
   }
+}
+
+function getMailingListGitBranch(config: RenovateConfig): string {
+  const fallback = config.mailingListGitBranch ?? 'renovate/mailing-list-report';
+  const template = config.mailingListGitBranchTemplate?.trim();
+  if (!template) {
+    return cleanMailingListBranchName(fallback);
+  }
+
+  const now = new Date();
+  const replacements: Record<string, string> = {
+    '{{date}}': formatDate(now),
+    '{{timestamp}}': formatTimestamp(now),
+    '{{epoch}}': String(now.getTime()),
+  };
+
+  let branch = template;
+  for (const [token, value] of Object.entries(replacements)) {
+    branch = branch.replaceAll(token, value);
+  }
+
+  if (!branch.trim()) {
+    branch = fallback;
+  }
+
+  return cleanMailingListBranchName(branch);
+}
+
+function formatDate(date: Date): string {
+  const year = String(date.getUTCFullYear());
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function formatTimestamp(date: Date): string {
+  const year = String(date.getUTCFullYear());
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+  return `${year}${month}${day}-${hours}${minutes}${seconds}`;
+}
+
+function cleanMailingListBranchName(branchName: string): string {
+  return cleanGitRef
+    .clean(branchName)
+    .replace(/^\.+|\.+$/g, '')
+    .replace(/\/\./g, '/')
+    .replace(/\s/g, '')
+    .replace(/[[\]?:\\^~]/g, '-')
+    .replace(/(^|\/)-+/g, '$1')
+    .replace(/-+(\/|$)/g, '$1')
+    .replace(/--+/g, '-');
 }
 
 function parseGitAuthor(gitAuthor?: string): { name: string; email: string } {

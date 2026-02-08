@@ -362,6 +362,7 @@ export interface RenovateConfig
   mailingListCc?: string[];
   mailingListFrom?: string;
   mailingListGitBranch?: string;
+  mailingListGitBranchTemplate?: string;
   mailingListGitCommitMessage?: string;
   mailingListGitFile?: string;
   mailingListGitRepo?: string;

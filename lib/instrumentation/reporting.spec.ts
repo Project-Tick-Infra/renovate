@@ -1,4 +1,5 @@
 import type { S3Client } from '@aws-sdk/client-s3';
+import { vi } from 'vitest';
 import { mock, mockDeep } from 'vitest-mock-extended';
 import { s3 } from '~test/s3.ts';
 import { fs, logger } from '~test/util.ts';
@@ -28,6 +29,9 @@ describe('instrumentation/reporting', () => {
   beforeEach(() => {
     resetReport();
     exec.exec.mockReset();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   const branchInformation: Partial<BranchCache>[] = [
@@ -169,11 +173,13 @@ describe('instrumentation/reporting', () => {
   });
 
   it('pushes mailing-list report to a separate git branch', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-02-08T00:00:00Z'));
     const config: RenovateConfig = {
       repository: 'myOrg/myRepo',
       reportType: 'mailing-list',
       mailingListGitRepo: 'https://example.com/org/reports.git',
-      mailingListGitBranch: 'renovate/mailing-list',
+      mailingListGitBranchTemplate: 'renovate/mailing-list/{{date}}',
       mailingListGitFile: 'mail/summary.eml',
       mailingListGitCommitMessage: 'chore: update summary',
       gitAuthor: 'Renovate Bot <renovate@example.com>',
@@ -196,7 +202,7 @@ describe('instrumentation/reporting', () => {
 
     expect(exec.exec).toHaveBeenCalledTimes(8);
     expect(exec.exec).toHaveBeenCalledWith(
-      [{ command: ['git', 'checkout', '-B', 'renovate/mailing-list'] }],
+      [{ command: ['git', 'checkout', '-B', 'renovate/mailing-list/2026-02-08'] }],
       expect.any(Object),
     );
     expect(exec.exec).toHaveBeenCalledWith(
@@ -207,7 +213,7 @@ describe('instrumentation/reporting', () => {
             'push',
             '--force-with-lease',
             'origin',
-            'HEAD:renovate/mailing-list',
+            'HEAD:renovate/mailing-list/2026-02-08',
           ],
         },
       ],

@@ -520,6 +520,15 @@ const options: Readonly<RenovateOptions>[] = [
     experimental: true,
   },
   {
+    name: 'mailingListGitBranchTemplate',
+    description:
+      'Template for naming the target branch when pushing `reportType=mailing-list` output to Git. Supported tokens: {{date}}, {{timestamp}}, {{epoch}}.',
+    globalOnly: true,
+    type: 'string',
+    default: null,
+    experimental: true,
+  },
+  {
     name: 'mailingListGitCommitMessage',
     description:
       'Commit message used when pushing `reportType=mailing-list` output to a Git repository.',

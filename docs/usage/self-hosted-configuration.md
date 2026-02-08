@@ -998,6 +998,11 @@ Use this to set the `From:` header for `reportType=mailing-list` exports.
 
 Use this to set the target branch name when `reportType=mailing-list` output is pushed to a Git repository.
 
+## mailingListGitBranchTemplate
+
+Use this to generate a unique branch name per run. Supported tokens: `{{date}}`, `{{timestamp}}`, `{{epoch}}`.
+Example: `renovate/mailing-list/{{date}}` or `renovate/mailing-list/{{timestamp}}`.
+
 ## mailingListGitCommitMessage
 
 Use this to customize the commit message when `reportType=mailing-list` output is pushed to a Git repository.
