@@ -5,8 +5,8 @@ import { s3 } from '~test/s3.ts';
 import { fs, logger } from '~test/util.ts';
 import type { RenovateConfig } from '../config/types.ts';
 import type { PackageFile } from '../modules/manager/types.ts';
-import * as _exec from '../util/exec/index.ts';
 import type { BranchCache } from '../util/cache/repository/types.ts';
+import * as _exec from '../util/exec/index.ts';
 import {
   addBranchStats,
   addExtractionStats,
@@ -202,7 +202,16 @@ describe('instrumentation/reporting', () => {
 
     expect(exec.exec).toHaveBeenCalledTimes(8);
     expect(exec.exec).toHaveBeenCalledWith(
-      [{ command: ['git', 'checkout', '-B', 'renovate/mailing-list/2026-02-08'] }],
+      [
+        {
+          command: [
+            'git',
+            'checkout',
+            '-B',
+            'renovate/mailing-list/2026-02-08',
+          ],
+        },
+      ],
       expect.any(Object),
     );
     expect(exec.exec).toHaveBeenCalledWith(

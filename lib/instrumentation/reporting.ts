@@ -107,7 +107,10 @@ export async function exportStats(config: RenovateConfig): Promise<void> {
       const mailReport = renderMailingListReport(config, report);
       if (!isNullOrUndefined(config.reportPath)) {
         await writeSystemFile(config.reportPath, mailReport);
-        logger.debug({ path: config.reportPath }, 'Writing mailing list report');
+        logger.debug(
+          { path: config.reportPath },
+          'Writing mailing list report',
+        );
       } else {
         logger.info({ mailReport }, 'Printing mailing list report');
       }
@@ -327,7 +330,8 @@ async function pushMailingListReportToGit(
 }
 
 function getMailingListGitBranch(config: RenovateConfig): string {
-  const fallback = config.mailingListGitBranch ?? 'renovate/mailing-list-report';
+  const fallback =
+    config.mailingListGitBranch ?? 'renovate/mailing-list-report';
   const template = config.mailingListGitBranchTemplate?.trim();
   if (!template) {
     return cleanMailingListBranchName(fallback);
@@ -387,9 +391,9 @@ function parseGitAuthor(gitAuthor?: string): { name: string; email: string } {
     return defaultAuthor;
   }
 
-  const parsed = /^(?<name>[^<]+?)\s*<(?<email>[^>]+)>$/
-    .exec(gitAuthor.trim())
-    ?.groups;
+  const parsed = /^(?<name>[^<]+?)\s*<(?<email>[^>]+)>$/.exec(
+    gitAuthor.trim(),
+  )?.groups;
   if (parsed?.name && parsed.email) {
     return { name: parsed.name.trim(), email: parsed.email.trim() };
   }
